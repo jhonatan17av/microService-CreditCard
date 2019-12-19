@@ -1,6 +1,6 @@
 package com.bootcamp.microserviceCreditCard.microServiceCreditCard;
 
-import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dao.ICreditCardDao;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.repository.ICreditCardRepository;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.CreditCard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,7 @@ import java.util.Date;
 public class MicroServiceCreditCardApplication implements CommandLineRunner {
 
     @Autowired
-    private ICreditCardDao dao;
+    private ICreditCardRepository repo;
     @Autowired
     private ReactiveMongoTemplate mongoTemplate;
     private static final Logger log = LoggerFactory.getLogger(MicroServiceCreditCardApplication.class);
@@ -32,10 +32,13 @@ public class MicroServiceCreditCardApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        mongoTemplate.dropCollection("persons").subscribe();
 
-        Flux.just(new CreditCard("8888888888","Credit Card",84000.00,1000.00,"Active",new Date(),new Date()))
-                .flatMap(creditCard -> dao.save(creditCard))
+        mongoTemplate.dropCollection("creditCards").subscribe();
+
+        Flux.just(new CreditCard("99966633310","Tarjeta de Credito",
+                "Vip",150000.0,150000.0,
+                "Active",new Date(),new Date()))
+                .flatMap(creditCard -> repo.save(creditCard))
                 .subscribe(creditCard -> log.info("Person inserted :" + creditCard.getNumAccount()));
 
 

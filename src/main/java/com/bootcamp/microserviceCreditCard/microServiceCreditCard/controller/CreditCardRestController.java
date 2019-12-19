@@ -1,7 +1,9 @@
 package com.bootcamp.microserviceCreditCard.microServiceCreditCard.controller;
 
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.CreditCard;
-import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.services.ICreditCardService;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.Movement;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.CreditCardDto;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.services.ICreditCardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,7 +21,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/creditCard")
 public class CreditCardRestController {
-
 
     @Autowired
     private ICreditCardService creditCardService;
@@ -51,13 +52,42 @@ public class CreditCardRestController {
     }
 
     @PostMapping
+    public Mono<ResponseEntity<Map<String, Object>>> saveCreditCompanyWithPerson(@RequestBody Mono<CreditCardDto> creditCardDtoMono) {
+
+        Map<String, Object> respuesta = new HashMap<>();
+
+        return creditCardDtoMono.flatMap(creditCardDto -> {
+            return creditCardService.saveCreditCardWithPerson(creditCardDto)
+                    .map(p -> {
+                        respuesta.put("creditCard :", creditCardDto);
+                        return ResponseEntity
+                                .created(URI.create("/creditCard"))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .body(respuesta);
+                    });
+        }).onErrorResume(throwable -> {
+            return Mono.just(throwable).cast(WebExchangeBindException.class)
+                    .flatMap(e -> Mono.just(e.getFieldErrors()))
+                    .flatMapMany(Flux::fromIterable)
+                    .map(fieldError -> "El campo" + fieldError.getField() + " " + fieldError.getDefaultMessage())
+                    .collectList()
+                    .flatMap(list -> {
+                        respuesta.put("Errors : ", list);
+                        respuesta.put("timestamp : ", new Date());
+                        respuesta.put("status", HttpStatus.BAD_REQUEST.value());
+                        return Mono.just(ResponseEntity.badRequest().body(respuesta));
+                    });
+        });
+    }
+
+    @PostMapping("/account")
     public Mono<ResponseEntity<Map<String, Object>>> saveCreditCompany(@RequestBody Mono<CreditCard> creditCardMono) {
 
         Map<String, Object> respuesta = new HashMap<>();
 
         return creditCardMono.flatMap(creditCard -> {
-            if (creditCard.getCreateAt() == null) {
-                creditCard.setCreateAt(new Date());
+            if (creditCard.getCreatedAt() == null) {
+                creditCard.setCreatedAt(new Date());
             }
             return creditCardService.saveCreditCard(creditCard)
                     .map(p -> {
@@ -91,7 +121,7 @@ public class CreditCardRestController {
                     p.setBalance(creditCard.getBalance());
                     p.setCurrentBalance(creditCard.getCurrentBalance());
                     p.setStatus(creditCard.getStatus());
-                    p.setUpdateAt(new Date());
+                    p.setUpdatedAt(new Date());
                     return creditCardService.saveCreditCard(p);
                 }).map(per -> ResponseEntity
                         .created(URI.create("/creditCard".concat(per.getId())))
@@ -108,6 +138,30 @@ public class CreditCardRestController {
                     return creditCardService.deleteCreditCard(creditCard)
                             .then(Mono.just(new ResponseEntity<Void>(HttpStatus.NO_CONTENT)));
                 }).defaultIfEmpty(new ResponseEntity<Void>(HttpStatus.NOT_FOUND));
+    }
+    @PostMapping("/saveMov")
+    public Mono<ResponseEntity<CreditCard>> movimiento2(@RequestBody Movement movement) {
+        return creditCardService.saveMovement(movement)
+                .map(savingAccount -> ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(savingAccount))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/movements")
+    public Mono<ResponseEntity<Flux<Movement>>> findAllMovement(){
+        return Mono.just(ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(creditCardService.findAllMovement()))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/movements/{numAccount}")
+    public Mono<ResponseEntity<Flux<Movement>>> findMovByNumAccount(@PathVariable String numAccount){
+        return Mono.just(ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(creditCardService.findMovByNumAccount(numAccount)))
+                .defaultIfEmpty(ResponseEntity.notFound().build());
     }
 
 }
