@@ -35,11 +35,11 @@ public class MicroServiceCreditCardApplication implements CommandLineRunner {
 
         mongoTemplate.dropCollection("creditCards").subscribe();
 
-        Flux.just(new CreditCard("99966633310","Tarjeta de Credito",
+        Flux.just(new CreditCard("Scotiabank","99966633310","Tarjeta de Credito",
                 "Vip",150000.0,150000.0,
-                "Active",new Date(),new Date()))
+                "Active",new Date(),new Date(),0))
                 .flatMap(creditCard -> repo.save(creditCard))
-                .subscribe(creditCard -> log.info("Person inserted :" + creditCard.getNumAccount()));
+                .subscribe(creditCard -> log.info("Credit Card inserted :" + creditCard.getNumAccount()));
 
 
     }

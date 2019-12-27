@@ -3,8 +3,11 @@ package com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.Person;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -12,19 +15,23 @@ import java.util.List;
 @Data
 public class CreditCardDto {
 
-    @NotBlank
+    @NotEmpty
     private String id;
-    @NotBlank
+    @NotEmpty(message = "Campo nomBank no puede ser vacio")
+    private String nomBank;
+    @NotEmpty(message = "Campo numAccount no puede ser vacio")
     private String numAccount;
-    @NotBlank
+    @NotEmpty(message = "Campo nomAccount no puede ser vacio")
     private String nomAccount;
-    @NotBlank
+    @NotEmpty(message = "Campo typeAccount no puede ser vacio")
     private String typeAccount;
-    @NotBlank
+    @NotEmpty(message = "Campo balance no puede ser vacio")
+    @Min(0)
     private Double balance;
-    @NotBlank
+    @NotEmpty(message = "Campo currentBalance no puede ser vacio")
+    @Min(0)
     private Double currentBalance;
-    @NotBlank
+    @NotEmpty(message = "Campo status no puede ser vacio")
     private String status;
     @NotBlank
     @JsonFormat(pattern = "dd-MM-yyyy")
@@ -32,6 +39,8 @@ public class CreditCardDto {
     @NotBlank
     @JsonFormat(pattern = "dd-MM-yyyy")
     private Date updatedAt;
+    @NotEmpty(message = "Campo cantTransactions no puede ser vacio")
+    private Integer cantTransactions;
     @NotBlank
     private List<Person> listPersons;
 

@@ -78,21 +78,44 @@ public class CreditCardServiceImpl implements ICreditCardService{
     public Mono<CreditCard> saveMovement(Movement movement) {
 
         return repoCreditCard.findBynumAccount(movement.getNumAccount())
-                .flatMap(savingAccount -> {
 
-                    movement.setCreatedAt(new Date());
-                    return repoMovement.save(movement)
-                            .flatMap(s -> {
-                                if (movement.getTypeMovement().trim().toLowerCase().equals("deposito")) {
-                                    savingAccount.setUpdatedAt(new Date());
-                                    savingAccount.setCurrentBalance(savingAccount.getCurrentBalance() + movement.getBalanceTransaction());
-                                    return repoCreditCard.save(savingAccount);
-                                } else if (movement.getTypeMovement().trim().toLowerCase().equals("retiro")) {
-                                    savingAccount.setCurrentBalance(savingAccount.getCurrentBalance() - movement.getBalanceTransaction());
-                                    return repoCreditCard.save(savingAccount);
-                                }
-                                return Mono.just(savingAccount);
-                            });
+                .flatMap(creditCard -> {
+                    double comi = 0.0;
+
+                    if (movement.getTypeMovement().equalsIgnoreCase("retiro") && movement.getBalanceTransaction() < creditCard.getCurrentBalance()){
+
+                        if (creditCard.getCantTransactions() > 5){
+                            movement.setCommission(movement.getBalanceTransaction() * 0.1);
+                        }else {
+                            movement.setCommission(comi);
+                        }
+
+                        movement.setCreatedAt(new Date());
+
+                        return repoMovement.save(movement)
+                                .flatMap(m -> {
+                                    creditCard.setCantTransactions(creditCard.getCantTransactions() + 1);
+                                    //movement.setCommission(movement.getBalanceTransaction() * 0.1);
+                                    creditCard.setCurrentBalance(creditCard.getCurrentBalance() - movement.getBalanceTransaction() - movement.getCommission());
+                                    return repoCreditCard.save(creditCard);
+                                });
+
+                    }else if (movement.getTypeMovement().equalsIgnoreCase("deposito") && movement.getBalanceTransaction() < creditCard.getCurrentBalance()){
+                        if (creditCard.getCantTransactions() > 5){
+                            movement.setCommission(movement.getBalanceTransaction() * 0.1);
+                        }else {
+                            movement.setCommission(comi);
+                        }
+                        movement.setCreatedAt(new Date());
+
+                        return repoMovement.save(movement).
+                                flatMap(m ->{
+                                    creditCard.setCantTransactions(creditCard.getCantTransactions() + 1);
+                                    creditCard.setCurrentBalance(creditCard.getCurrentBalance() + movement.getBalanceTransaction() - movement.getCommission());
+                                    return repoCreditCard.save(creditCard);
+                                });
+                    }
+                    return Mono.just(creditCard);
                 });
     }
 

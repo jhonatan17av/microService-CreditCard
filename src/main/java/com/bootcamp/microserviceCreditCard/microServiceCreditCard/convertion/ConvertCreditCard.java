@@ -23,6 +23,7 @@ public class ConvertCreditCard {
 	
 	public CreditCard toCreditCard(CreditCardDto dto) {
 		CreditCard creditCard = new CreditCard();
+		creditCard.setNomBank(dto.getNomBank());
 		creditCard.setNumAccount(dto.getNumAccount());
 		creditCard.setNomAccount(dto.getNomAccount());
 		creditCard.setTypeAccount(dto.getTypeAccount());
