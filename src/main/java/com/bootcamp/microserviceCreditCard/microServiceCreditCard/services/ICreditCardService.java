@@ -3,6 +3,7 @@ package com.bootcamp.microserviceCreditCard.microServiceCreditCard.services;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.CreditCard;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.Movement;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.CreditCardDto;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.MovPayFromAccount;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -21,6 +22,8 @@ public interface ICreditCardService {
 
 
     Mono<CreditCard> saveMovement(Movement movement);
+    //trabajando movimiento con pago desde cuenta
+    Mono<CreditCard> saveMovement2(MovPayFromAccount movPayFromAccount);
     Flux<Movement> findAllMovement();
     Flux<Movement> findMovByNumAccount(String numAccount);
 }

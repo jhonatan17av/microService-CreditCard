@@ -6,10 +6,11 @@ import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documen
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.Person;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.AccountDto;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.CreditCardDto;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.MovPayFromAccount;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.repository.ICreditCardRepository;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.CreditCard;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.repository.MovementRespository;
-import com.bootcamp.microserviceCreditCard.microServiceCreditCard.services.serviceDto.IPersonServiceDto;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.services.serviceDto.IServiceClientDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
@@ -24,7 +25,7 @@ public class CreditCardServiceImpl implements ICreditCardService {
   private ICreditCardRepository repoCreditCard;
 
   @Autowired
-  private IPersonServiceDto personService;
+  private IServiceClientDto serviceClient;
 
   @Autowired
   private MovementRespository repoMovement;
@@ -76,7 +77,7 @@ public class CreditCardServiceImpl implements ICreditCardService {
             person.setNomAccount(creditCard.getNomAccount());
             person.setTypeAccount(creditCard.getTypeAccount());
             person.setStatus(creditCard.getStatus());
-            personService.savePerson(person).block();
+            serviceClient.savePerson(person).block();
           });
           return Mono.just(creditCardDto);
         });
@@ -94,7 +95,7 @@ public class CreditCardServiceImpl implements ICreditCardService {
 
   @Override
   public Mono<CreditCard> saveAccountOnPerson(CreditCard creditCard, String numDoc) {
-    return personService.lstAccounts(numDoc)
+    return serviceClient.lstAccounts(numDoc)
         .collectList()
         .flatMap(accounts -> {
 
@@ -114,7 +115,7 @@ public class CreditCardServiceImpl implements ICreditCardService {
           if (!value) {
             return repoCreditCard.save(creditCard)
                 .flatMap(x -> {
-                  return personService.findBynumDoc(numDoc)
+                  return serviceClient.findBynumDoc(numDoc)
                       .flatMap(personDtoReturn -> {
                         Person p = new Person();
                         p.setNamePerson(personDtoReturn.getNamePerson());
@@ -130,7 +131,7 @@ public class CreditCardServiceImpl implements ICreditCardService {
                         p.setNomAccount(x.getNomAccount());
                         p.setTypeAccount(x.getTypeAccount());
                         p.setStatus(x.getStatus());
-                        return personService.updatePerson(p, numDoc)
+                        return serviceClient.updatePerson(p, numDoc)
                             .flatMap(personDto1 -> {
                               personDto1.setId(creditCard.getId());
                               return Mono.just(creditCard);
@@ -180,7 +181,56 @@ public class CreditCardServiceImpl implements ICreditCardService {
             return repoMovement.save(movement).
                 flatMap(m -> {
                   creditCard.setCantTransactions(creditCard.getCantTransactions() + 1);
-                  creditCard.setCurrentBalance(creditCard.getCurrentBalance() + movement.getBalanceTransaction() - movement.getCommission());
+                  creditCard.setCurrentBalance(creditCard.getCurrentBalance() +
+                      movement.getBalanceTransaction() - movement.getCommission());
+                  return repoCreditCard.save(creditCard);
+                });
+          }
+          return Mono.just(creditCard);
+        });
+  }
+
+  @Override
+  public Mono<CreditCard> saveMovement2(MovPayFromAccount movPayFromAccount) {
+    return repoCreditCard.findBynumAccount(movPayFromAccount.getNumCreditCard())
+        .flatMap(creditCard -> {
+          double comi = 0.0;
+
+          if (movPayFromAccount.getTypeMovement().equalsIgnoreCase("buy") && movPayFromAccount.getBalanceTransaction() < creditCard.getCurrentBalance()) {
+            if (creditCard.getCantTransactions() > 5) {
+              movPayFromAccount.setCommission(movPayFromAccount.getBalanceTransaction() * 0.1);
+            } else {
+              movPayFromAccount.setCommission(comi);
+            }
+
+            movPayFromAccount.setCreatedAt(new Date());
+
+            return repoMovement.save(conv.toMovement(movPayFromAccount))
+                .flatMap(m -> {
+                  creditCard.setCantTransactions(creditCard.getCantTransactions() + 1);
+                  creditCard.setCurrentBalance(creditCard.getCurrentBalance() - m.getBalanceTransaction() - m.getCommission());
+                  return repoCreditCard.save(creditCard);
+                });
+          } else if (movPayFromAccount.getTypeMovement().equalsIgnoreCase("pay")) {
+
+            if (creditCard.getCantTransactions() > 5) {
+              movPayFromAccount.setCommission(movPayFromAccount.getBalanceTransaction() * 0.1);
+            } else {
+              movPayFromAccount.setCommission(comi);
+            }
+            movPayFromAccount.setCreatedAt(new Date());
+
+            return repoMovement.save(conv.toMovement(movPayFromAccount))
+                .flatMap(movement -> {
+                  movement.setNumAccount(movPayFromAccount.getNumAccount());
+                  movement.setTypeMovement("retiro");
+                  movement.setBalanceTransaction(movPayFromAccount.getBalanceTransaction());
+                  movement.setCommission(movPayFromAccount.getCommission());
+                  movement.setCreatedAt(new Date());
+                  return serviceClient.saveMovement(movement);
+                }).flatMap(movement -> {
+                  creditCard.setCantTransactions(creditCard.getCantTransactions() + 1);
+                  creditCard.setCurrentBalance(creditCard.getCurrentBalance() + movPayFromAccount.getBalanceTransaction() - movPayFromAccount.getCommission());
                   return repoCreditCard.save(creditCard);
                 });
           }

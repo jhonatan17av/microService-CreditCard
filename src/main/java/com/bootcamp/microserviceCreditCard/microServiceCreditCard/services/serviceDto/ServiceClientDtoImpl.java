@@ -1,9 +1,11 @@
 package com.bootcamp.microserviceCreditCard.microServiceCreditCard.services.serviceDto;
 
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.Movement;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.Person;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.AccountDto;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.PersonDtoReturn;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,14 +17,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class PersonServiceDtoImpl implements IPersonServiceDto{
+public class ServiceClientDtoImpl implements IServiceClientDto {
 
 	@Autowired
-	private WebClient client;
+	@Qualifier("personService")
+	private WebClient clientPerson;
+
+	@Autowired
+	@Qualifier("savingAccount")
+	private WebClient clientSavingAccount;
 
 	@Override
 	public Mono<Person> savePerson(Person person) {
-		return client.post()
+		return clientPerson.post()
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
 				.syncBody(person)
@@ -34,7 +41,7 @@ public class PersonServiceDtoImpl implements IPersonServiceDto{
 	public Mono<PersonDtoReturn> findBynumDoc(String numDoc) {
 		Map<String, Object> params = new HashMap<>();
 		params.put("numDoc", numDoc);
-		return client.get()
+		return clientPerson.get()
 				.uri("/document/{numDoc}",params)
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
@@ -43,7 +50,7 @@ public class PersonServiceDtoImpl implements IPersonServiceDto{
 
 	@Override
 	public Mono<PersonDtoReturn> updatePerson(Person personDto, String numDoc) {
-		return client.put()
+		return clientPerson.put()
 				.uri("/dto/{numDoc}", Collections.singletonMap("numDoc",numDoc))
 				.accept(MediaType.APPLICATION_JSON)
 				.contentType(MediaType.APPLICATION_JSON)
@@ -54,10 +61,23 @@ public class PersonServiceDtoImpl implements IPersonServiceDto{
 
 	@Override
 	public Flux<AccountDto> lstAccounts(String numDoc) {
-		return client.get()
+		return clientPerson.get()
 				.uri("/lstAccount/{numDoc}",Collections.singletonMap("numDoc",numDoc))
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
 				.bodyToFlux(AccountDto.class);
 	}
+
+	@Override
+	public Mono<Movement> saveMovement(Movement movement) {
+		return clientSavingAccount.post()
+				.uri("/saveMov")
+				.accept(MediaType.APPLICATION_JSON)
+				.contentType(MediaType.APPLICATION_JSON)
+				.syncBody(movement)
+				.retrieve()
+				.bodyToMono(Movement.class);
+	}
+
+
 }

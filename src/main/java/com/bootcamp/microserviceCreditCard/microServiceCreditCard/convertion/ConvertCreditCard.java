@@ -39,7 +39,7 @@ public class ConvertCreditCard {
 
 	public Movement toMovement(MovPayFromAccount dto) {
 		Movement movement = new Movement();
-		movement.setNumAccount(dto.getNumAccount());
+		movement.setNumAccount(dto.getNumCreditCard());
 		movement.setTypeMovement(dto.getTypeMovement());
 		movement.setBalanceTransaction(dto.getBalanceTransaction());
 		movement.setCommission(dto.getCommission());

@@ -3,6 +3,7 @@ package com.bootcamp.microserviceCreditCard.microServiceCreditCard.controller;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.CreditCard;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.Movement;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.CreditCardDto;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.MovPayFromAccount;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.services.ICreditCardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -152,6 +153,15 @@ public class CreditCardRestController {
   @PostMapping("/saveMov")
   public Mono<ResponseEntity<CreditCard>> saveMovement(@RequestBody Movement movement) {
     return creditCardService.saveMovement(movement)
+        .map(savingAccount -> ResponseEntity.ok()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(savingAccount))
+        .defaultIfEmpty(ResponseEntity.notFound().build());
+  }
+
+  @PostMapping("/saveMovFromAccount")
+  public Mono<ResponseEntity<CreditCard>> saveMovement2(@RequestBody MovPayFromAccount movement) {
+    return creditCardService.saveMovement2(movement)
         .map(savingAccount -> ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_JSON)
             .body(savingAccount))
