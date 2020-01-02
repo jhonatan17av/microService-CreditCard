@@ -1,14 +1,17 @@
-package com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents;
+package com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
 import java.util.Date;
+import java.util.List;
 
 @Data
-public class Person {
+public class PersonDtoReturn {
 
+    @NotBlank
+    private String id;
     @NotBlank
     private String namePerson;
     @NotBlank
@@ -29,14 +32,6 @@ public class Person {
     @JsonFormat(pattern = "dd-MM-yyyy")
     private Date updatedAt;
     @NotBlank
-    private String nomBank;
-    @NotBlank
-    private String numAccount;
-    @NotBlank
-    private String nomAccount;
-    @NotBlank
-    private String typeAccount;
-    @NotBlank
-    private String status;
+    private List<AccountDto> accountsList;
 
 }

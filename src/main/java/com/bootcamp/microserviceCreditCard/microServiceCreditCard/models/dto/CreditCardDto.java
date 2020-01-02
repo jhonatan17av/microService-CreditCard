@@ -42,6 +42,9 @@ public class CreditCardDto {
     @NotEmpty(message = "Campo cantTransactions no puede ser vacio")
     private Integer cantTransactions;
     @NotBlank
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    private Date datePay;
+    @NotBlank
     private List<Person> listPersons;
 
     public CreditCardDto() {

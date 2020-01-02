@@ -3,6 +3,7 @@ package com.bootcamp.microserviceCreditCard.microServiceCreditCard.convertion;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.CreditCard;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documents.Movement;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.CreditCardDto;
+import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.MovPayFromAccount;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -32,14 +33,17 @@ public class ConvertCreditCard {
 		creditCard.setStatus(dto.getStatus());
 		creditCard.setCreatedAt(dto.getCreatedAt());
 		creditCard.setUpdatedAt(dto.getUpdatedAt());
+		creditCard.setDatePay(dto.getDatePay());
 		return creditCard;
 	}
 
-	public Movement toMovement(CreditCardDto dto) {
+	public Movement toMovement(MovPayFromAccount dto) {
 		Movement movement = new Movement();
 		movement.setNumAccount(dto.getNumAccount());
-		movement.setNumAccount(dto.getNumAccount());
-		movement.setNumAccount(dto.getNumAccount());
+		movement.setTypeMovement(dto.getTypeMovement());
+		movement.setBalanceTransaction(dto.getBalanceTransaction());
+		movement.setCommission(dto.getCommission());
+		movement.setCreatedAt(dto.getCreatedAt());
 		return movement;
 	}
 

@@ -41,6 +41,9 @@ public class CreditCard {
     private Date updatedAt;
     @NotEmpty(message = "Campo cantTransactions no puede ser vacio")
     private Integer cantTransactions;
+    @NotBlank
+    @JsonFormat(pattern = "dd-MM-yyyy")
+    private Date datePay;
 
     public CreditCard() {
     }
@@ -65,7 +68,9 @@ public class CreditCard {
                       @NotBlank
                               Date updatedAt,
                       @NotEmpty(message = "Campo cantTransactions no puede ser vacio")
-                              Integer cantTransactions) {
+                              Integer cantTransactions,
+                      @NotBlank
+                          Date datePay) {
         this.nomBank = nomBank;
         this.numAccount = numAccount;
         this.nomAccount = nomAccount;
@@ -76,5 +81,6 @@ public class CreditCard {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.cantTransactions = cantTransactions;
+        this.datePay = datePay;
     }
 }

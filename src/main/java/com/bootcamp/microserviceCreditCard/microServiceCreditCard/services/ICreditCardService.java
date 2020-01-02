@@ -11,10 +11,14 @@ public interface ICreditCardService {
     Flux<CreditCard> findAll();
     Mono<CreditCard> findById(String id);
     Mono<CreditCard> findByNumAccount(String numAccount);
+    Flux<CreditCard> findByNomBank(String nomBank);
     Mono<CreditCard> saveCreditCard(CreditCard creditCard);
     Mono<CreditCardDto> saveCreditCardWithPerson(CreditCardDto creditCardDto);
     Mono<CreditCard> updateAccount(CreditCard savingAccount);
     Mono<Void> deleteCreditCard(CreditCard creditCard);
+
+    Mono<CreditCard> saveAccountOnPerson(CreditCard creditCard, String numDoc);
+
 
     Mono<CreditCard> saveMovement(Movement movement);
     Flux<Movement> findAllMovement();
