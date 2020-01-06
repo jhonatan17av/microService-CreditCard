@@ -5,21 +5,20 @@ import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.documen
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.CreditCardDto;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.models.dto.MovPayFromAccount;
 import com.bootcamp.microserviceCreditCard.microServiceCreditCard.services.ICreditCardService;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 @RestController
+@Api(value = "Controller-Person", description = "Methods on Controller to Person")
 @RequestMapping("/creditCard")
 public class CreditCardRestController {
 
@@ -53,68 +52,31 @@ public class CreditCardRestController {
   }
 
   @PostMapping
-  public Mono<ResponseEntity<Map<String, Object>>> saveCreditCardWithPerson(@RequestBody Mono<CreditCardDto> creditCardDtoMono) {
+  public Mono<ResponseEntity<CreditCardDto>> saveCreditCardWithPerson(@RequestBody CreditCardDto creditCardDto) {
 
-    Map<String, Object> respuesta = new HashMap<>();
+    return Mono.just(creditCardDto)
+        .flatMap(creditCardDtoMono -> {
+          return creditCardService.saveCreditCardWithPerson(creditCardDto)
+              .map(s -> ResponseEntity.created(URI.create("/creditCard"))
+                  .contentType(MediaType.APPLICATION_JSON).body(s));
+        });
 
-    return creditCardDtoMono.flatMap(creditCardDto -> {
-      return creditCardService.saveCreditCardWithPerson(creditCardDto)
-          .map(p -> {
-            respuesta.put("creditCard :", creditCardDto);
-            return ResponseEntity
-                .created(URI.create("/creditCard"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(respuesta);
-          });
-    }).onErrorResume(throwable -> {
-      return Mono.just(throwable).cast(WebExchangeBindException.class)
-          .flatMap(e -> Mono.just(e.getFieldErrors()))
-          .flatMapMany(Flux::fromIterable)
-          .map(fieldError -> "El campo" + fieldError.getField() + " " + fieldError.getDefaultMessage())
-          .collectList()
-          .flatMap(list -> {
-            respuesta.put("Errors : ", list);
-            respuesta.put("timestamp : ", new Date());
-            respuesta.put("status", HttpStatus.BAD_REQUEST.value());
-            return Mono.just(ResponseEntity.badRequest().body(respuesta));
-          });
-    });
   }
 
   @PostMapping("/account")
-  public Mono<ResponseEntity<Map<String, Object>>> saveCreditCard(@RequestBody Mono<CreditCard> creditCardMono) {
+  public Mono<ResponseEntity<CreditCard>> saveCreditCard(@RequestBody CreditCard creditCard) {
 
-    Map<String, Object> respuesta = new HashMap<>();
+    return Mono.just(creditCard)
+        .flatMap(creditCardMono -> {
+          return creditCardService.saveCreditCard(creditCardMono)
+              .map(s -> ResponseEntity.created(URI.create("/creditCard"))
+                  .contentType(MediaType.APPLICATION_JSON).body(s));
+        });
 
-    return creditCardMono.flatMap(creditCard -> {
-      if (creditCard.getCreatedAt() == null) {
-        creditCard.setCreatedAt(new Date());
-      }
-      return creditCardService.saveCreditCard(creditCard)
-          .map(p -> {
-            respuesta.put("creditCard :", creditCard);
-            return ResponseEntity
-                .created(URI.create("/creditCard"))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(respuesta);
-          });
-    }).onErrorResume(throwable -> {
-      return Mono.just(throwable).cast(WebExchangeBindException.class)
-          .flatMap(e -> Mono.just(e.getFieldErrors()))
-          .flatMapMany(Flux::fromIterable)
-          .map(fieldError -> "El campo" + fieldError.getField() + " " + fieldError.getDefaultMessage())
-          .collectList()
-          .flatMap(list -> {
-            respuesta.put("Errors : ", list);
-            respuesta.put("timestamp : ", new Date());
-            respuesta.put("status", HttpStatus.BAD_REQUEST.value());
-            return Mono.just(ResponseEntity.badRequest().body(respuesta));
-          });
-    });
   }
 
-  @PostMapping("/upd/{numDoc}")
-  public Mono<ResponseEntity<CreditCard>> saveAccount2(@RequestBody CreditCard creditCardMono, @PathVariable String numDoc) {
+  @PostMapping("/onPerson/{numDoc}")
+  public Mono<ResponseEntity<CreditCard>> saveAccountOnPerson(@RequestBody CreditCard creditCardMono, @PathVariable String numDoc) {
     return Mono.just(creditCardMono)
         .flatMap(savingAccountMono1 -> {
           return creditCardService.saveAccountOnPerson(creditCardMono, numDoc)
@@ -160,8 +122,8 @@ public class CreditCardRestController {
   }
 
   @PostMapping("/saveMovFromAccount")
-  public Mono<ResponseEntity<CreditCard>> saveMovement2(@RequestBody MovPayFromAccount movement) {
-    return creditCardService.saveMovement2(movement)
+  public Mono<ResponseEntity<CreditCard>> saveMovementFromAccount(@RequestBody MovPayFromAccount movement) {
+    return creditCardService.saveMovementFromAccount(movement)
         .map(savingAccount -> ResponseEntity.ok()
             .contentType(MediaType.APPLICATION_JSON)
             .body(savingAccount))

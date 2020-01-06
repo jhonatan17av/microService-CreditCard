@@ -103,7 +103,8 @@ public class CreditCardServiceImpl implements ICreditCardService {
 
           for (AccountDto account : accounts) {
             if (account.getNomAccount().equals(creditCard.getNomAccount())
-                && account.getTypeAccount().equals(creditCard.getTypeAccount()) && account.getNomBank().equalsIgnoreCase(creditCard.getNomBank())) {
+                && account.getTypeAccount().equals(creditCard.getTypeAccount())
+                && account.getNomBank().equalsIgnoreCase(creditCard.getNomBank())) {
               value = true;
               break;
             }
@@ -191,7 +192,7 @@ public class CreditCardServiceImpl implements ICreditCardService {
   }
 
   @Override
-  public Mono<CreditCard> saveMovement2(MovPayFromAccount movPayFromAccount) {
+  public Mono<CreditCard> saveMovementFromAccount(MovPayFromAccount movPayFromAccount) {
     return repoCreditCard.findBynumAccount(movPayFromAccount.getNumCreditCard())
         .flatMap(creditCard -> {
           double comi = 0.0;
@@ -227,7 +228,14 @@ public class CreditCardServiceImpl implements ICreditCardService {
                   movement.setBalanceTransaction(movPayFromAccount.getBalanceTransaction());
                   movement.setCommission(movPayFromAccount.getCommission());
                   movement.setCreatedAt(new Date());
-                  return serviceClient.saveMovement(movement);
+                  if (movPayFromAccount.getNomAccount().equalsIgnoreCase("Cuenta de Ahorro")) {
+                    return serviceClient.saveMovementSavingA(movement);
+                  } else if (movPayFromAccount.getNomAccount().equalsIgnoreCase("Cuenta Corriente")) {
+                    return serviceClient.saveMovementCurrentA(movement);
+                  }
+
+                  return Mono.empty();
+
                 }).flatMap(movement -> {
                   creditCard.setCantTransactions(creditCard.getCantTransactions() + 1);
                   creditCard.setCurrentBalance(creditCard.getCurrentBalance() + movPayFromAccount.getBalanceTransaction() - movPayFromAccount.getCommission());

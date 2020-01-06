@@ -27,6 +27,11 @@ public class ServiceClientDtoImpl implements IServiceClientDto {
 	@Qualifier("savingAccount")
 	private WebClient clientSavingAccount;
 
+	@Autowired
+	@Qualifier("currentAccount")
+	private WebClient clientCurrentAccount;
+
+
 	@Override
 	public Mono<Person> savePerson(Person person) {
 		return clientPerson.post()
@@ -69,7 +74,7 @@ public class ServiceClientDtoImpl implements IServiceClientDto {
 	}
 
 	@Override
-	public Mono<Movement> saveMovement(Movement movement) {
+	public Mono<Movement> saveMovementSavingA(Movement movement) {
 		return clientSavingAccount.post()
 				.uri("/saveMov")
 				.accept(MediaType.APPLICATION_JSON)
@@ -79,5 +84,15 @@ public class ServiceClientDtoImpl implements IServiceClientDto {
 				.bodyToMono(Movement.class);
 	}
 
+	@Override
+	public Mono<Movement> saveMovementCurrentA(Movement movement) {
+		return clientCurrentAccount.post()
+				.uri("/saveMov")
+				.accept(MediaType.APPLICATION_JSON)
+				.contentType(MediaType.APPLICATION_JSON)
+				.syncBody(movement)
+				.retrieve()
+				.bodyToMono(Movement.class);
+	}
 
 }

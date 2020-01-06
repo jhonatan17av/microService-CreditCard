@@ -13,6 +13,8 @@ public class ServiceConfig {
   private String pathPerson;
   @Value("${config.base.endpoint2}")
   private String pathSavingAccount;
+  @Value("${config.base.endpoint3}")
+  private String pathCurrentAccount;
 
   @Bean
 	@Qualifier("personService")
@@ -25,4 +27,10 @@ public class ServiceConfig {
 	public WebClient webClientSavingAccount() {
 		return WebClient.create(pathSavingAccount);
 	}
+
+  @Bean
+  @Qualifier("currentAccount")
+  public WebClient webClientCurrentAccount() {
+    return WebClient.create(pathCurrentAccount);
+  }
 }

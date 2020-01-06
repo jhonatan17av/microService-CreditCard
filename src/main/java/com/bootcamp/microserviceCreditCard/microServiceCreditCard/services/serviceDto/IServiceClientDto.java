@@ -14,6 +14,7 @@ public interface IServiceClientDto {
 	Mono<PersonDtoReturn> updatePerson(Person person, String numDoc);
 	Flux<AccountDto> lstAccounts(String numDoc);
 
-	Mono<Movement> saveMovement(Movement movement);
+	Mono<Movement> saveMovementSavingA(Movement movement);
+	Mono<Movement> saveMovementCurrentA(Movement movement);
 
 }

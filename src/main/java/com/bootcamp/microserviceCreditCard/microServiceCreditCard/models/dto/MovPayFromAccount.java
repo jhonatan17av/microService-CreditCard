@@ -10,6 +10,8 @@ import java.util.Date;
 @Data
 public class MovPayFromAccount {
 
+  @NotEmpty(message = "The field nomAccount shouldn't be empty")
+  private String nomAccount;
   @NotEmpty(message = "The field numCreditCard shouldn't be empty")
   private String numCreditCard;
   @NotEmpty(message = "The field numAccount shouldn't be empty")

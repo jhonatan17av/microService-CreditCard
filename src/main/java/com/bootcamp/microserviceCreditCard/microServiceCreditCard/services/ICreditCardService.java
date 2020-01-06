@@ -22,8 +22,7 @@ public interface ICreditCardService {
 
 
     Mono<CreditCard> saveMovement(Movement movement);
-    //trabajando movimiento con pago desde cuenta
-    Mono<CreditCard> saveMovement2(MovPayFromAccount movPayFromAccount);
+    Mono<CreditCard> saveMovementFromAccount(MovPayFromAccount movPayFromAccount);
     Flux<Movement> findAllMovement();
     Flux<Movement> findMovByNumAccount(String numAccount);
 }
