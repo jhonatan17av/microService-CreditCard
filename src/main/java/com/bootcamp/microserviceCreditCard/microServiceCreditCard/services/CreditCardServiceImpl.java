@@ -197,7 +197,8 @@ public class CreditCardServiceImpl implements ICreditCardService {
         .flatMap(creditCard -> {
           double comi = 0.0;
 
-          if (movPayFromAccount.getTypeMovement().equalsIgnoreCase("buy") && movPayFromAccount.getBalanceTransaction() < creditCard.getCurrentBalance()) {
+          if (movPayFromAccount.getTypeMovement().equalsIgnoreCase("buy") &&
+              creditCard.getCurrentBalance() > movPayFromAccount.getBalanceTransaction()) {
             if (creditCard.getCantTransactions() > 5) {
               movPayFromAccount.setCommission(movPayFromAccount.getBalanceTransaction() * 0.1);
             } else {
